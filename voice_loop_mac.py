@@ -27,9 +27,10 @@ from pathlib import Path
 
 import numpy as np
 import sounddevice as sd
-# Larger audio buffer → robust to MLX CPU saturation during generation.
+# Larger audio buffer via 'high' latency → more robust to MLX CPU saturation.
+# NB: don't set sd.default.blocksize globally — a large blocksize on the TTS
+# output stream introduces a mic-to-reference delay that misaligns AEC.
 sd.default.latency = 'high'
-sd.default.blocksize = 2048
 import torch
 
 SAMPLE_RATE = 16000
