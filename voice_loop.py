@@ -25,6 +25,9 @@ import wave
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
+import shutil
+import urllib.request
+
 import numpy as np
 import sounddevice as sd
 sd.default.latency = 'high'
@@ -37,6 +40,29 @@ CHIME_SR = 24000
 _DIR = Path(__file__).parent
 IS_MAC = platform.system() == "Darwin"
 IS_LINUX = platform.system() == "Linux"
+
+
+def _download(url, dest, label=None):
+    """Download a file with a progress bar."""
+    label = label or os.path.basename(dest)
+    cols = shutil.get_terminal_size().columns
+    bar_width = max(20, cols - 45)
+
+    def _reporthook(block_num, block_size, total_size):
+        downloaded = block_num * block_size
+        if total_size > 0:
+            pct = min(100, downloaded * 100 // total_size)
+            filled = bar_width * downloaded // total_size
+            bar = "=" * filled + "-" * (bar_width - filled)
+            mb_done = downloaded / (1024 * 1024)
+            mb_total = total_size / (1024 * 1024)
+            print(f"\r  {label}: [{bar}] {pct}% ({mb_done:.1f}/{mb_total:.1f} MB)", end="", flush=True)
+        else:
+            mb_done = downloaded / (1024 * 1024)
+            print(f"\r  {label}: {mb_done:.1f} MB downloaded", end="", flush=True)
+
+    urllib.request.urlretrieve(url, dest, reporthook=_reporthook)
+    print(flush=True)  # newline after progress bar
 
 
 def load_system_prompt(include_memory: bool = False) -> str:
@@ -82,9 +108,9 @@ def load_smart_turn():
     if not os.path.exists(model_path):
         print("Downloading Smart Turn v3.2 model...", flush=True)
         os.makedirs(os.path.dirname(model_path), exist_ok=True)
-        import urllib.request
-        urllib.request.urlretrieve(
-            "https://huggingface.co/pipecat-ai/smart-turn-v3/resolve/main/smart-turn-v3.2-cpu.onnx", model_path)
+        _download(
+            "https://huggingface.co/pipecat-ai/smart-turn-v3/resolve/main/smart-turn-v3.2-cpu.onnx",
+            model_path, "smart-turn-v3.2")
     session = ort.InferenceSession(model_path, providers=["CPUExecutionProvider"])
     extractor = WhisperFeatureExtractor.from_pretrained("openai/whisper-tiny")
 
@@ -187,7 +213,6 @@ _PIPER_MODELS = {
 
 def load_tts_piper(piper_model="en_US-lessac-medium"):
     from piper import PiperVoice
-    import urllib.request
 
     cache_dir = os.path.join(tempfile.gettempdir(), "piper_tts")
     os.makedirs(cache_dir, exist_ok=True)
@@ -200,9 +225,9 @@ def load_tts_piper(piper_model="en_US-lessac-medium"):
             print(f"Error: unknown Piper model '{piper_model}'. Known: {', '.join(_PIPER_MODELS)}", file=sys.stderr)
             sys.exit(1)
         base = f"https://huggingface.co/rhasspy/piper-voices/resolve/main/{url_path}"
-        print(f"  Downloading Piper model {piper_model}...", flush=True)
-        urllib.request.urlretrieve(f"{base}/{piper_model}.onnx", onnx_path)
-        urllib.request.urlretrieve(f"{base}/{piper_model}.onnx.json", json_path)
+        print(f"Downloading Piper model {piper_model}...", flush=True)
+        _download(f"{base}/{piper_model}.onnx", onnx_path, f"{piper_model}.onnx")
+        _download(f"{base}/{piper_model}.onnx.json", json_path, f"{piper_model}.json")
 
     piper_voice = PiperVoice.load(onnx_path, json_path)
 
