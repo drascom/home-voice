@@ -5,7 +5,7 @@ Supports multiple backends for LLM. faster-whisper for STT. Piper or XTTS-v2 for
 
 Usage:
     uv run voice_loop.py                                  # OS defaults (Piper TTS)
-    uv run voice_loop.py --tts-engine xtts --lang tr      # XTTS-v2 Turkish (streaming + voice interrupt)
+    uv run voice_loop.py --lang tr --tts-engine xtts      # Turkish with XTTS-v2 (streaming + voice interrupt)
     uv run voice_loop.py --tts-engine xtts --speaker-wav ref.wav  # XTTS-v2 with voice cloning
     uv run voice_loop.py --backend api --base-url http://localhost:11434/v1 --model gemma3:4b
 """
@@ -335,15 +335,16 @@ def main():
                     help="OpenAI-compatible API base URL (for --backend api)")
     ap.add_argument("--api-key", default=None, help="API key (or set OPENAI_API_KEY)")
 
+    # Language
+    ap.add_argument("--lang", default="en", help="Language for both STT and TTS (default: en)")
+
     # STT
-    ap.add_argument("--stt-lang", default="en", help="STT language code (default: en)")
     ap.add_argument("--stt-model", default="medium", help="Whisper model size (default: medium)")
 
     # TTS
     ap.add_argument("--tts", action=B, default=True, help="Enable/disable TTS")
     ap.add_argument("--tts-engine", choices=["piper", "xtts"], default="piper",
                     help="TTS engine: piper (CPU, lightweight) or xtts (GPU, streaming, voice cloning)")
-    ap.add_argument("--lang", default="en", help="TTS language (default: en)")
     ap.add_argument("--piper-model", default=None,
                     help="Piper model name (default: auto from --lang)")
     ap.add_argument("--speaker-wav", default=None,
@@ -384,7 +385,7 @@ def main():
         print(f"  backend : api  ({args.base_url} / {args.model})")
     else:
         print(f"  backend : {args.backend}  ({args.model})")
-    print(f"  stt     : whisper-{args.stt_model} ({args.stt_lang})")
+    print(f"  stt     : whisper-{args.stt_model} ({args.lang})")
     if args.tts:
         if args.tts_engine == "xtts":
             clone_tag = f" clone:{args.speaker_wav}" if args.speaker_wav else ""
@@ -401,7 +402,7 @@ def main():
     vad = load_silero_vad(onnx=True)
 
     # --- Load STT ---
-    transcribe = load_stt_whisper(args.stt_lang, args.stt_model)
+    transcribe = load_stt_whisper(args.lang, args.stt_model)
 
     # --- Load LLM ---
     if args.backend == "mlx":

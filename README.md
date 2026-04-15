@@ -48,11 +48,26 @@ First run downloads models: faster-whisper medium (~1.5GB), LLM (~3GB), TTS mode
 ### Quick start
 
 ```bash
-# macOS — defaults (MLX Gemma 4, whisper STT, Piper TTS)
+# macOS — defaults (MLX Gemma 4, whisper STT, Piper TTS, English)
 uv run voice_loop.py
 
-# Linux — defaults (transformers Gemma on CUDA, whisper STT, Piper TTS)
+# Linux — defaults (transformers Gemma on CUDA, whisper STT, Piper TTS, English)
 uv run voice_loop.py
+```
+
+### Language (`--lang`)
+
+Single flag sets language for both STT and TTS.
+
+```bash
+# English (default)
+uv run voice_loop.py --lang en
+
+# Turkish
+uv run voice_loop.py --lang tr
+
+# Spanish
+uv run voice_loop.py --lang es
 ```
 
 ### LLM backend (`--backend`)
@@ -74,15 +89,9 @@ uv run voice_loop.py --backend api --base-url https://api.openai.com/v1 --model 
 uv run voice_loop.py --backend local --model google/gemma-3-4b-it
 ```
 
-### STT options (`--stt-lang`, `--stt-model`)
+### STT options (`--stt-model`)
 
 ```bash
-# English (default)
-uv run voice_loop.py --stt-lang en
-
-# Turkish
-uv run voice_loop.py --stt-lang tr
-
 # Larger whisper model for better accuracy
 uv run voice_loop.py --stt-model large-v3
 
@@ -96,20 +105,14 @@ uv run voice_loop.py --stt-model tiny
 # Piper — lightweight, CPU, no streaming (default)
 uv run voice_loop.py --tts-engine piper
 
-# Piper — Turkish
-uv run voice_loop.py --tts-engine piper --lang tr
-
 # Piper — specific model
 uv run voice_loop.py --tts-engine piper --piper-model en_GB-alba-medium
 
 # XTTS-v2 — GPU, streaming, voice interrupt, higher quality
-uv run voice_loop.py --tts-engine xtts --lang en
-
-# XTTS-v2 — Turkish with streaming voice interrupt
-uv run voice_loop.py --tts-engine xtts --lang tr
+uv run voice_loop.py --tts-engine xtts
 
 # XTTS-v2 — voice cloning from a reference WAV
-uv run voice_loop.py --tts-engine xtts --lang tr --speaker-wav my_voice.wav
+uv run voice_loop.py --tts-engine xtts --speaker-wav my_voice.wav
 
 # Disable TTS (text-only output)
 uv run voice_loop.py --no-tts
@@ -119,15 +122,17 @@ uv run voice_loop.py --no-tts
 
 ```bash
 # Turkish with Piper (lightweight, CPU)
-uv run voice_loop.py --stt-lang tr --lang tr --tts-engine piper
+uv run voice_loop.py --lang tr
 
 # Turkish with XTTS-v2 (streaming + voice interrupt)
-uv run voice_loop.py --stt-lang tr --lang tr --tts-engine xtts
+uv run voice_loop.py --lang tr --tts-engine xtts
+
+# Turkish with XTTS-v2 + voice cloning
+uv run voice_loop.py --lang tr --tts-engine xtts --speaker-wav my_voice.wav
 
 # Turkish with Ollama backend
-uv run voice_loop.py \
-  --backend api --base-url http://localhost:11434/v1 --model gemma3:4b \
-  --stt-lang tr --lang tr --tts-engine xtts
+uv run voice_loop.py --lang tr --tts-engine xtts \
+  --backend api --base-url http://localhost:11434/v1 --model gemma3:4b
 ```
 
 ### Other options
@@ -156,15 +161,14 @@ uv run voice_loop.py --record
 
 | Flag | Default | Description |
 |------|---------|-------------|
+| `--lang` | `en` | Language for both STT and TTS (e.g. `tr`, `es`, `fr`) |
 | `--backend` | `mlx` (macOS) / `local` (Linux) | LLM backend: `mlx`, `local`, or `api` |
 | `--model` | auto per backend | HuggingFace model ID or Ollama model name |
 | `--base-url` | `http://localhost:11434/v1` | OpenAI-compatible API URL (for `--backend api`) |
 | `--api-key` | env `OPENAI_API_KEY` | API key (auto `"ollama"` for localhost) |
-| `--stt-lang` | `en` | STT language code (e.g. `tr`, `es`, `fr`) |
 | `--stt-model` | `medium` | Whisper model size: `tiny`, `small`, `medium`, `large-v3` |
 | `--tts` / `--no-tts` | on | Enable/disable TTS |
 | `--tts-engine` | `piper` | TTS engine: `piper` (CPU) or `xtts` (GPU, streaming) |
-| `--lang` | `en` | TTS language code |
 | `--piper-model` | auto from `--lang` | Piper ONNX model name |
 | `--speaker-wav` | none | Reference WAV for XTTS voice cloning |
 | `--smart-turn` / `--no-smart-turn` | on | Smart Turn v3 endpoint detection |
