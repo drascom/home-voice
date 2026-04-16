@@ -86,7 +86,7 @@ uv run voice_loop.py --backend api --base-url http://localhost:11434/v1 --model 
 uv run voice_loop.py --backend api --base-url https://api.openai.com/v1 --model gpt-4o-mini
 
 # Custom model
-uv run voice_loop.py --backend local --model google/gemma-4-E2B-it
+uv run voice_loop.py --backend local --model unsloth/gemma-4-E4B-it-unsloth-bnb-4bit
 ```
 
 ### STT options (`--stt-model`)
