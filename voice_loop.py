@@ -189,7 +189,18 @@ def load_stt_whisper(lang="en", model_size="medium"):
     device = "cuda" if not IS_MAC else "cpu"
     compute = "float16" if device == "cuda" else "int8"
     print(f"Loading faster-whisper {model_size} ({device}/{compute})...", flush=True)
-    wm = WhisperModel(model_size, device=device, compute_type=compute)
+
+    # faster-whisper suppresses download progress by default (disabled_tqdm).
+    # Pre-download with huggingface_hub so the user sees a progress bar.
+    repo_id = f"Systran/faster-whisper-{model_size}"
+    try:
+        from huggingface_hub import snapshot_download
+        model_path = snapshot_download(repo_id)
+    except Exception:
+        # Fall back to letting WhisperModel handle it
+        model_path = model_size
+
+    wm = WhisperModel(model_path, device=device, compute_type=compute)
 
     def transcribe(audio):
         segments, _ = wm.transcribe(audio, language=lang, beam_size=5)
