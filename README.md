@@ -28,16 +28,16 @@ A minimal on-device voice agent loop. macOS Apple Silicon + Linux Nvidia GPU.
 **macOS:**
 ```bash
 brew install portaudio espeak-ng
-git clone https://github.com/TrelisResearch/voice-loop.git
-cd voice-loop
+git clone https://github.com/drascom/home-voice.git
+cd home-voice
 uv sync
 ```
 
 **Linux (Nvidia GPU):**
 ```bash
 sudo apt install portaudio19-dev espeak-ng libcudnn9-cuda-12
-git clone https://github.com/TrelisResearch/voice-loop.git
-cd voice-loop
+git clone https://github.com/drascom/home-voice.git
+cd home-voice
 uv sync
 ```
 
