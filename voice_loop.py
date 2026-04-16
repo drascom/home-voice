@@ -333,7 +333,7 @@ def _resolve_api_key(cli_key, base_url):
 def main():
     os_label = "macOS" if IS_MAC else "Linux"
     default_backend = "mlx" if IS_MAC else "local"
-    default_model = "mlx-community/gemma-4-E4B-it-4bit" if IS_MAC else "google/gemma-3-4b-it"
+    default_model = "mlx-community/gemma-4-E4B-it-4bit" if IS_MAC else "google/gemma-4-E2B-it"
 
     ap = argparse.ArgumentParser(description=f"Voice Loop — a minimal on-device voice agent ({os_label})")
     B = argparse.BooleanOptionalAction
